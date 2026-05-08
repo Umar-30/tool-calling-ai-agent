@@ -9,25 +9,24 @@ from tools import tools_schema, function_map
 load_dotenv()
 
 class Settings:
-    COHERE_API_KEY = os.getenv("COHERE_API_KEY")
+    @classmethod
+    def get_api_key(cls):
+        return os.getenv("COHERE_API_KEY")
+
     BASE_URL = "https://api.cohere.com/compatibility/v1"
     MODEL_NAME = "command-r-08-2024"
 
-    @classmethod
-    def validate(cls):
-        if not cls.COHERE_API_KEY:
-            raise ValueError("COHERE_API_KEY is missing in .env")
-
-Settings.validate()
-
-# Initialize Client
-client = AsyncOpenAI(
-    api_key=Settings.COHERE_API_KEY,
-    base_url=Settings.BASE_URL,
-)
-
 # 2. Agent Logic
 async def run_agent(user_input: str):
+    api_key = Settings.get_api_key()
+    if not api_key:
+        return {"status": "error", "message": "COHERE_API_KEY is missing. Please set it in Secrets or .env"}
+
+    client = AsyncOpenAI(
+        api_key=api_key,
+        base_url=Settings.BASE_URL,
+    )
+    
     messages = [{"role": "user", "content": user_input}]
 
     try:
